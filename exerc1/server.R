@@ -5,8 +5,8 @@ function(input, output, session) {
   output$plot = renderHighchart({
     input$refresh
     
-    s = randomWalk(input$n, input$u)
-    xaxis = 0:(input$n) / input$n
+    s = randomWalk(input$N, input$u)
+    xaxis = 0:(input$N) / input$N
     highchart() %>%
       hc_xAxis(categories = xaxis) %>%
       hc_yAxis(title = list(text = "Valor do ativo")) %>%

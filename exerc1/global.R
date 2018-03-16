@@ -1,7 +1,6 @@
 
 library(shiny)
 library(highcharter)
-library(datasets)
 library(shinythemes)
 
 randomWalk = function(n, u) {
