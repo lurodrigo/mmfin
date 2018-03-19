@@ -19,7 +19,7 @@ fluidPage(theme = shinytheme("cosmo"),
     column(5, offset = 1,
       h5("Parâmetros"),
       numericInput("N", "N = ", 200, min = 1),
-      numericInput("u", "u = ", 1.2, step = .01, min = .01)
+      numericInput("u", "u = ", 1.2, step = .0001, min = .0001)
     )
   ),
   hr(),
