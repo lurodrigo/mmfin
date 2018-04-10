@@ -9,15 +9,20 @@ fluidPage(theme = shinytheme("cosmo"),
   # Generate a row with a sidebar
   fluidRow(
     column(5, offset = 1,
-      h5("Parâmetros"),
+      h3("Parâmetros"),
       numericInput("N", "N = ", 4, min = 1),
-      numericInput("u", "u = ", 1.2, step = .0001, min = .0001)
+      numericInput("u", "u = ", 2, step = .0001, min = .0001)
     ), 
     column(5, offset = 1,
-      numericInput("r", "r = ", 1.1, step = .0001, min = .0001),
-      numericInput("strike", "strike = ", 1.2, step = .0001, min = .0001)
+      numericInput("r", "r = ", 0.01, step = .0001, min = .0001),
+      numericInput("strike", "strike = ", 1.2, step = .0001, min = .0001),
+      numericInput("digitos", "digitos = ", 2, step = 1, min = 1)
     )
   ),
-  hr(),
-  grVizOutput("plot", width = 700, height = 300)
+  fluidRow(
+    tabsetPanel(
+      tabPanel("Diagrama", grVizOutput("diag", width = 700, height = 700)),
+      tabPanel("Gráfico", highchartOutput("plot"))
+    )
+  )
 )
