@@ -7,28 +7,44 @@ library(magrittr)
 library(glue)
 library(DiagrammeR)
 
-computeVs = function(S0, N, T, u, r, strike, convencaoLinear, anual) {
+payoffFunc = function(expr) {
+  function(S) { eval(parse(text = expr)) }
+}
+
+SAt = function(S0, u, n, k) {
+  d = 1/u
+  S0 * u^(n-k) * d^k
+}
+
+VAt = function(S0, u, n, r, payoff) {
+  d = 1/u
+  p = (1+r - d)/(u-d)
+  q = (u - (1+r))/(u-d)
   
-  if (anual) {
-    u = u^(1/360)
-    
-    if (convencaoLinear) {
-      r = (1 + r)^(1/360) - 1
-    } else {
-      r = r/360
-    }
+  0:n %>%
+    map_dbl(function(k) choose(n, k)*p^(n-k)*q^k * payoff(SAt(S0, u, n, k))) %>%
+    sum
+}
+
+VAtSequence = function(S, u, r, payoff) {
+  N = length(S) - 1
+  V = double(length(S))
+  
+  for (i in 0:N) {
+    V[i+1] = VAt(S[i+1], u, N-i, r, payoff)
   }
   
-  u = u^(T/N)
-  r = (1 + r)^(T/N) - 1
+  V
+}
 
+computeVs = function(S0, N, u, r, payoff, convencaoLinear, anual) {
   d = 1/u
   p = (1+r - d)/(u-d)
   q = (u - (1+r))/(u-d)
   v = matrix(rep(0, (N + 1)*(N + 1)), nrow = N + 1)
   
   for (k in 0:N) {
-    v[N + 1, k + 1] = S0*max(u^(N-k) * d^k - strike, 0)
+    v[N + 1, k + 1] = payoff(SAt(S0, u, N, k))
   }
   
   for (n in (N-1):0) {
@@ -40,21 +56,7 @@ computeVs = function(S0, N, T, u, r, strike, convencaoLinear, anual) {
   v
 }
 
-randomWalk = function(S0, N, T, u, r, strike, convencaoLinear, anual) {
-  
-  if (anual) {
-    u = u^(1/360)
-    
-    if (convencaoLinear) {
-      r = (1 + r)^(1/360) - 1
-    } else {
-      r = r/360
-    }
-  }
-  
-  u = u^(T/N)
-  r = (1 + r)^(T/N) - 1
-  
+randomWalk = function(S0, N, u, r, convencaoLinear, anual) {
   d = 1/u
   p = (1+r - d)/(u-d)
   q = (u - (1+r))/(u-d)
@@ -69,13 +71,15 @@ randomWalk = function(S0, N, T, u, r, strike, convencaoLinear, anual) {
   S
 }
 
-monteCarlo = function(S0, N, T, u, r, strike, convencaoLinear, anual, M) {
-  map_dbl(1:M, ~ randomWalk(S0, N, T, u, r, strike, convencaoLinear, anual)[N+1] - strike) %>%
-    mean
+monteCarlo = function(S0, N, u, r, payoff, convencaoLinear, anual, M) {
+  1:M %>%
+    map_dbl(~ payoff(randomWalk(S0, N, u, r, convencaoLinear, anual)[N+1])) %>%
+    mean %>%
+    divide_by((1+r)^N)
 }
 
-graphSpec = function(S0, N, T, u, r, strike, digitos, convencaoLinear, anual) {
-  v = computeVs(S0, N, T, u, r, strike, convencaoLinear, anual)
+graphSpec = function(S0, N, u, r, payoff, digitos, convencaoLinear, anual) {
+  v = computeVs(S0, N, u, r, payoff, convencaoLinear, anual)
   
   nodes = expand.grid(k = 0:N, n = 0:N) %>%
     filter(k <= n) %>%
@@ -89,7 +93,8 @@ graphSpec = function(S0, N, T, u, r, strike, digitos, convencaoLinear, anual) {
     arrange(n, k, desc(k2))
   
   for (i in 1:nrow(nodes)) {
-    nodes$label[i] = sprintf(glue('%.{digitos}f'), v[nodes$n[i]+1, nodes$k[i]+1])
+    nodes$label[i] = sprintf(glue('S: %.{digitos}f\nV: %.{digitos}f'), 
+                             SAt(S0, u, nodes$n[i], nodes$k[i]), v[nodes$n[i]+1, nodes$k[i]+1])
   }
   
   glue("

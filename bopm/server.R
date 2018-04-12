@@ -1,27 +1,39 @@
 
+N_MAX = 25
+
+escala = function(checked) {
+  if (checked) "logarithmic" else "linear"
+}
+
 # Define a server for the Shiny app
 function(input, output, session) {
 
-  output$diag = renderGrViz({
-    if (input$N > 10) {
+  react = reactiveValues()
+  
+  observeEvent(input$payoff, {
+    react$payoff = payoffFunc(input$payoff)
+  })
+  
+  output$diagrama = renderGrViz({
+    if (input$N > N_MAX) {
       return()
     }
     
-    graphSpec(input$S0, input$N, input$T, input$u, input$r, input$strike, 
+    graphSpec(input$S0, input$N, input$u, input$r, react$payoff, 
               input$digitos, input$convencao, input$anual) %>%
       grViz()
   })
   
   output$plot = renderHighchart({
-    if (input$N > 10 || (input$u <= 1 + input$r) || (1 + input$r <= (1/input$u))) {
+    if (input$N > N_MAX || (input$u <= 1 + input$r) || (1 + input$r <= (1/input$u))) {
       return(highchart())
     }
-    v = computeVs(input$S0, input$N, input$T, input$u, input$r, input$strike, input$convencao, input$anual)
+    v = computeVs(input$S0, input$N, input$u, input$r, react$payoff, input$convencao, input$anual)
     base = rep(NA, input$N+1)
       
     plt = highchart() %>%
-      hc_xAxis(categories = (0:(input$T))/input$N) %>%
-      hc_yAxis(title = list(text = "Preço da opção"), type = "logarithmic") %>%
+      hc_xAxis(categories = (0:(input$T))/input$N, title = list(text = "Tempo (dias)")) %>%
+      hc_yAxis(title = list(text = "Preço da opção"), type = escala(input$escala_log)) %>%
       hc_add_theme(hc_theme_gridlight()) %>%
       hc_legend(enabled = FALSE)
     
@@ -40,27 +52,29 @@ function(input, output, session) {
   })
   
   output$walk = renderHighchart({
+    input$novoRandomWalk
+    
     if ((input$u <= 1 + input$r) || (1 + input$r <= (1/input$u))) {
       return(highchart())
     }
     
-    input$novo
-
-    S = randomWalk(input$S0, input$N, input$T, input$u, input$r, input$strike, input$convencao, input$anual)
+    S = randomWalk(input$S0, input$N, input$u, input$r, input$convencao, input$anual)
     
     plt = highchart() %>%
-      hc_xAxis(categories = (0:(input$T))/input$N) %>%
-      hc_yAxis(title = list(text = "Preço do ativo"), type = "logarithmic") %>%
+      hc_xAxis(categories = (0:(input$T))/input$N, title = list(text = "Tempo (dias)"))  %>%
+      hc_yAxis(title = list(text = "Preço do ativo"), type = escala(input$escala_log)) %>%
       hc_add_theme(hc_theme_gridlight()) %>%
-      hc_legend(enabled = FALSE) %>%
-      hc_add_series(data = S, colorIndex = 0, marker = list(symbol = "circle"))
+      hc_add_series(data = S, name = "Preço do ativo") %>%
+      hc_add_series(data = VAtSequence(S, input$u, input$r, react$payoff), name = "Preço da opção")
     
     plt
   })
   
-  output$montecarlo = renderText({
-    monte = monteCarlo(input$S0, input$N, input$T, input$u, input$r, 
-                            input$strike, input$convencao, input$anual, input$M)
+  output$monteCarlo = renderText({
+    input$novoMonteCarlo
+    
+    monte = monteCarlo(input$S0, input$N, input$u, input$r, 
+                            react$payoff, input$convencao, input$anual, input$M)
     glue("Resultado por Monte Carlo: {monte}")
   })
 }
