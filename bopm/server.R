@@ -14,23 +14,33 @@ function(input, output, session) {
     react$payoff = payoffFunc(input$payoff)
   })
   
+  observe({
+    if (input$anual) {
+      react$u = input$u^(1/360 * input$T/input$N)
+      react$r = (1 + input$r)^(input$T/360 * input$T/input$N) - 1
+    } else {
+      react$u = input$u^(input$T/input$N)
+      react$r = (1 + input$r)^(input$T/input$N) - 1
+    }
+  })
+  
   output$diagrama = renderGrViz({
     if (input$N > N_MAX) {
       return()
     }
     
-    graphSpec(input$S0, input$N, input$u, input$r, react$payoff, 
+    graphSpec(input$S0, input$N, react$u, react$r, react$payoff, 
               input$digitos, input$anual) %>%
       grViz()
   })
   
   output$plot = renderHighchart({
-    if (input$N > N_MAX || (input$u <= 1 + input$r) || (1 + input$r <= (1/input$u))) {
+    if (input$N > N_MAX || (react$u <= 1 + react$r) || (1 + react$r <= (1/react$u))) {
       return(highchart())
     }
  
     base = rep(NA, input$N+1)
-    v = computeVs(input$S0, input$N, input$u, input$r, react$payoff, input$anual)
+    v = computeVs(input$S0, input$N, react$u, react$r, react$payoff, input$anual)
       
     plt = highchart() %>%
       hc_xAxis(categories = (0:(input$T))/input$N, title = list(text = "Tempo (dias)")) %>%
@@ -54,11 +64,11 @@ function(input, output, session) {
   
   observe({
     input$novoRandomWalk
-    react$S = randomWalk(input$S0, input$N, input$u, input$r, input$anual)
+    react$S = randomWalk(input$S0, input$N, react$u, react$r, input$anual)
   })
   
   output$walk = renderHighchart({
-    if ((input$u <= 1 + input$r) || (1 + input$r <= (1/input$u))) {
+    if ((react$u <= 1 + react$r) || (1 + react$r <= (1/react$u))) {
       return(highchart())
     }
 
@@ -67,7 +77,7 @@ function(input, output, session) {
       hc_yAxis(title = list(text = "Preço do ativo"), type = escala(input$escala_log)) %>%
       hc_add_theme(hc_theme_gridlight()) %>%
       hc_add_series(data = react$S, name = "Preço do ativo") %>%
-      hc_add_series(data = VAtSequence(react$S, input$u, input$r, react$payoff), name = "Preço da opção")
+      hc_add_series(data = VAtSequence(react$S, react$u, react$r, react$payoff), name = "Preço da opção")
     
     plt
   })
@@ -75,7 +85,7 @@ function(input, output, session) {
   output$monteCarlo = renderText({
     input$novoMonteCarlo
     
-    monte = monteCarlo(input$S0, input$N, input$u, input$r, 
+    monte = monteCarlo(input$S0, input$N, 1, react$r, 
                             react$payoff, input$anual, input$M)
     glue("Resultado por Monte Carlo: {monte}")
   })
