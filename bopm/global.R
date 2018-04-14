@@ -37,7 +37,13 @@ VAtSequence = function(S, u, r, payoff) {
   V
 }
 
-computeVs = function(S0, N, u, r, payoff, convencaoLinear, anual) {
+computeVs = function(S0, N, u, r, payoff, anual) {
+  
+  if (anual) {
+    u = u^(1/360)
+    r = (1+r)^(1/360) - 1
+  }
+  
   d = 1/u
   p = (1+r - d)/(u-d)
   q = (u - (1+r))/(u-d)
@@ -56,7 +62,12 @@ computeVs = function(S0, N, u, r, payoff, convencaoLinear, anual) {
   v
 }
 
-randomWalk = function(S0, N, u, r, convencaoLinear, anual) {
+randomWalk = function(S0, N, u, r, anual) {
+  if (anual) {
+    u = u^(1/360)
+    r = (1+r)^(1/360) - 1
+  }
+  
   d = 1/u
   p = (1+r - d)/(u-d)
   q = (u - (1+r))/(u-d)
@@ -71,15 +82,15 @@ randomWalk = function(S0, N, u, r, convencaoLinear, anual) {
   S
 }
 
-monteCarlo = function(S0, N, u, r, payoff, convencaoLinear, anual, M) {
+monteCarlo = function(S0, N, u, r, payoff, anual, M) {
   1:M %>%
-    map_dbl(~ payoff(randomWalk(S0, N, u, r, convencaoLinear, anual)[N+1])) %>%
+    map_dbl(~ payoff(randomWalk(S0, N, u, r, anual)[N+1])) %>%
     mean %>%
     divide_by((1+r)^N)
 }
 
-graphSpec = function(S0, N, u, r, payoff, digitos, convencaoLinear, anual) {
-  v = computeVs(S0, N, u, r, payoff, convencaoLinear, anual)
+graphSpec = function(S0, N, u, r, payoff, digitos, anual) {
+  v = computeVs(S0, N, u, r, payoff, anual)
   
   nodes = expand.grid(k = 0:N, n = 0:N) %>%
     filter(k <= n) %>%

@@ -19,7 +19,7 @@ fluidPage(theme = shinytheme("cosmo"),
       textInput("payoff", "Payoff:", value = "max(S-80, 0)")
     ),
     column(4,
-      checkboxInput("convencao", "Convenção linear?", value = FALSE),
+      #checkboxInput("convencao", "Convenção linear?", value = FALSE),
       checkboxInput("anual", "Taxas anuais?", value = FALSE),
       checkboxInput("escala_log", "Eixo Y em log?", value = TRUE)
     )

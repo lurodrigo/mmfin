@@ -20,7 +20,7 @@ function(input, output, session) {
     }
     
     graphSpec(input$S0, input$N, input$u, input$r, react$payoff, 
-              input$digitos, input$convencao, input$anual) %>%
+              input$digitos, input$anual) %>%
       grViz()
   })
   
@@ -28,8 +28,9 @@ function(input, output, session) {
     if (input$N > N_MAX || (input$u <= 1 + input$r) || (1 + input$r <= (1/input$u))) {
       return(highchart())
     }
-    v = computeVs(input$S0, input$N, input$u, input$r, react$payoff, input$convencao, input$anual)
+ 
     base = rep(NA, input$N+1)
+    v = computeVs(input$S0, input$N, input$u, input$r, react$payoff, input$anual)
       
     plt = highchart() %>%
       hc_xAxis(categories = (0:(input$T))/input$N, title = list(text = "Tempo (dias)")) %>%
@@ -51,21 +52,22 @@ function(input, output, session) {
     plt
   })
   
-  output$walk = renderHighchart({
+  observe({
     input$novoRandomWalk
-    
+    react$S = randomWalk(input$S0, input$N, input$u, input$r, input$anual)
+  })
+  
+  output$walk = renderHighchart({
     if ((input$u <= 1 + input$r) || (1 + input$r <= (1/input$u))) {
       return(highchart())
     }
-    
-    S = randomWalk(input$S0, input$N, input$u, input$r, input$convencao, input$anual)
-    
+
     plt = highchart() %>%
       hc_xAxis(categories = (0:(input$T))/input$N, title = list(text = "Tempo (dias)"))  %>%
       hc_yAxis(title = list(text = "Preço do ativo"), type = escala(input$escala_log)) %>%
       hc_add_theme(hc_theme_gridlight()) %>%
-      hc_add_series(data = S, name = "Preço do ativo") %>%
-      hc_add_series(data = VAtSequence(S, input$u, input$r, react$payoff), name = "Preço da opção")
+      hc_add_series(data = react$S, name = "Preço do ativo") %>%
+      hc_add_series(data = VAtSequence(react$S, input$u, input$r, react$payoff), name = "Preço da opção")
     
     plt
   })
@@ -74,7 +76,7 @@ function(input, output, session) {
     input$novoMonteCarlo
     
     monte = monteCarlo(input$S0, input$N, input$u, input$r, 
-                            react$payoff, input$convencao, input$anual, input$M)
+                            react$payoff, input$anual, input$M)
     glue("Resultado por Monte Carlo: {monte}")
   })
 }
