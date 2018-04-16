@@ -1,0 +1,12 @@
+---
+title: "Relatório para o Roteiro I de Modelagem Matemática em Finanças I"
+author: "Luiz Rodrigo Silva de Souza"
+date: "16 de abril de 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*Atividade 1:* 

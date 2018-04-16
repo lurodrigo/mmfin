@@ -108,7 +108,7 @@ function(input, output, session) {
     
     input$novoMonteCarlo
     
-    monte = monteCarlo(input$S0, input$N, 1, react$r, 
+    monte = monteCarlo(input$S0, input$N, react$u, react$r, 
                             react$payoff, input$anual, input$M)
     glue("Resultado por Monte Carlo: {monte}")
   })
