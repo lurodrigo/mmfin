@@ -15,6 +15,10 @@ function(input, output, session) {
   })
   
   observe({
+    react$naParameters = is.na(input$u) || is.na(input$r) || is.na(input$T) || is.na(input$S0) || is.na(input$N)
+  })
+  
+  observe({
     if (input$anual) {
       react$u = input$u^(1/360 * input$T/input$N)
       react$r = (1 + input$r)^(input$T/360 * input$T/input$N) - 1
@@ -22,10 +26,22 @@ function(input, output, session) {
       react$u = input$u^(input$T/input$N)
       react$r = (1 + input$r)^(input$T/input$N) - 1
     }
+    
+    react$validParameters = !react$naParameters && (react$u > 1 + react$r) && (1 + react$r > (1/react$u))
+  })
+  
+  output$msg = renderUI({
+    if (react$naParameters) {
+      HTML("<strong>Atenção:</strong> há parâmetros não preenchidos ou inválidos.")
+    } else if (!react$validParameters) {
+      HTML("<strong>Atenção:</strong> Os valores de u e r devem satisfazer u > 1 + r > 1/u.")
+    } else {
+      NULL
+    }
   })
   
   output$diagrama = renderGrViz({
-    if (input$N > N_MAX) {
+    if (input$N > N_MAX || !react$validParameters) {
       return()
     }
     
@@ -35,7 +51,7 @@ function(input, output, session) {
   })
   
   output$plot = renderHighchart({
-    if (input$N > N_MAX || (react$u <= 1 + react$r) || (1 + react$r <= (1/react$u))) {
+    if (input$N > N_MAX || !react$validParameters ) {
       return(highchart())
     }
  
@@ -64,11 +80,14 @@ function(input, output, session) {
   
   observe({
     input$novoRandomWalk
-    react$S = randomWalk(input$S0, input$N, react$u, react$r, input$anual)
+    
+    if (react$validParameters) {
+      react$S = randomWalk(input$S0, input$N, react$u, react$r, input$anual)
+    }
   })
   
   output$walk = renderHighchart({
-    if ((react$u <= 1 + react$r) || (1 + react$r <= (1/react$u))) {
+    if (!react$validParameters) {
       return(highchart())
     }
 
@@ -83,6 +102,10 @@ function(input, output, session) {
   })
   
   output$monteCarlo = renderText({
+    if (!react$validParameters) {
+      return(NULL)
+    }
+    
     input$novoMonteCarlo
     
     monte = monteCarlo(input$S0, input$N, 1, react$r, 
