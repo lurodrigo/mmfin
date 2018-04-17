@@ -33,8 +33,29 @@ Naturalmente, além dos resultados diferentes dos lançamentos de moeda, a difer
 está na *resolução* do modelo: um modelo com N maior contempla uma quantidade
 maior de valores possíveis para o valor final do ativo.
 
-**Atividade 4:**
+**Atividade 4:** Fiz esse gráfico para o exemplo 1.2.2 do livro. A diferença
+está somente no payoff, que é de uma call option e não de uma loopback option.
+Segue abaixo o diagrama gerado.
+
+![](grafico6.png)
+
+O gráfico abaixo mantém os parâmetros fixos, exceto N, que varia. Parece haver
+convergência para um valor não-nulo à medida que N aumenta.
+
+![](grafico3.png)
 
 **Atividade 5:**
+
+Implementei uma função para estimar o valor da opção por Monte Carlo especificando
+o número de tentativas. Os valores costumam estar bem próximos dos
+estimados pelo modelo binomial.
+
+![](grafico4.png)
+
+Para ver o comportamento em função de N, plotei as séries estimadas pelo modelo
+binomial e por monte carlo lado a lado. De fato o comportamento de ambas é
+bastante parecido. Para fins do gráfico, utilizei M = 1000.
+
+![](grafico5.png)
 
 **Atividade 6:**

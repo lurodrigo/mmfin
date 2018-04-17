@@ -31,16 +31,17 @@ fluidPage(theme = shinytheme("cosmo"),
         actionButton("novoRandomWalk", "Gerar Novamente", icon = icon("refresh")),
         highchartOutput("walk")
       ),
+      tabPanel("Valor da opção (BOPM/Monte Carlo)", 
+        numericInput("M", "M = ", value = 10000, min = 1, step = 1), 
+        actionButton("novoMonteCarlo", "Gerar Novamente", icon = icon("refresh")),
+        uiOutput("monteCarlo")
+      ),
       tabPanel("Diagrama", 
         numericInput("digitos", "Dígitos = ", value = 2, step = 1, min = 1),
         div(style = "text-align: center;", grVizOutput("diagrama", width = 700, height = 700))
       ),
       tabPanel("Gráfico", highchartOutput("plot")),
-      tabPanel("Monte Carlo", 
-        numericInput("M", "M = ", value = 10000, min = 1, step = 1), 
-        actionButton("novoMonteCarlo", "Gerar Novamente", icon = icon("refresh")),
-        textOutput("monteCarlo")
-      )
+      tabPanel("V em função de N", highchartOutput("vn"))
     )
   )
 )

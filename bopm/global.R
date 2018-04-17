@@ -21,9 +21,9 @@ VAt = function(S0, u, n, r, payoff) {
   p = (1+r - d)/(u-d)
   q = (u - (1+r))/(u-d)
   
-  0:n %>%
-    map_dbl(function(k) choose(n, k)*p^(n-k)*q^k * payoff(SAt(S0, u, n, k))) %>%
-    sum
+  map_dbl(0:n, function(k) choose(n, k)*p^(n-k)*q^k * payoff(SAt(S0, u, n, k))) %>%
+    sum %>%
+    divide_by((1+r)^n)
 }
 
 VAtSequence = function(S, u, r, payoff) {
@@ -37,13 +37,7 @@ VAtSequence = function(S, u, r, payoff) {
   V
 }
 
-computeVs = function(S0, N, u, r, payoff, anual) {
-  
-  if (anual) {
-    u = u^(1/360)
-    r = (1+r)^(1/360) - 1
-  }
-  
+computeVs = function(S0, N, u, r, payoff) {
   d = 1/u
   p = (1+r - d)/(u-d)
   q = (u - (1+r))/(u-d)
@@ -62,12 +56,7 @@ computeVs = function(S0, N, u, r, payoff, anual) {
   v
 }
 
-randomWalk = function(S0, N, u, r, anual) {
-  if (anual) {
-    u = u^(1/360)
-    r = (1+r)^(1/360) - 1
-  }
-  
+randomWalk = function(S0, N, u, r) {
   d = 1/u
   p = (1+r - d)/(u-d)
   q = (u - (1+r))/(u-d)
@@ -82,15 +71,15 @@ randomWalk = function(S0, N, u, r, anual) {
   S
 }
 
-monteCarlo = function(S0, N, u, r, payoff, anual, M) {
+monteCarlo = function(S0, N, u, r, payoff, M) {
   1:M %>%
-    map_dbl(~ payoff(randomWalk(S0, N, u, r, anual)[N+1])) %>%
+    map_dbl(~ payoff(randomWalk(S0, N, u, r)[N+1])) %>%
     mean %>%
     divide_by((1+r)^N)
 }
 
-graphSpec = function(S0, N, u, r, payoff, digitos, anual) {
-  v = computeVs(S0, N, u, r, payoff, anual)
+graphSpec = function(S0, N, u, r, payoff, digitos) {
+  v = computeVs(S0, N, u, r, payoff)
   
   nodes = expand.grid(k = 0:N, n = 0:N) %>%
     filter(k <= n) %>%
@@ -122,17 +111,3 @@ graphSpec = function(S0, N, u, r, payoff, digitos, anual) {
     edge_labels = edges %>% glue_data("{n}.{k}->{n2}.{k2}[label='{label}']") %>% paste0(collapse = "\n")
   )
 }
-
-getPath = function(v, tosses) {
-  x = integer(nrow(v))
-  x[1] = v[1, 1]
-  k = 1
-  for (i in 2:length(x)) {
-    if (toupper(str_sub(tosses, i, i)) == 'T') {
-      k = k + 1
-    } 
-    x[i] = v[i, k]
-  }
-  x
-}
-

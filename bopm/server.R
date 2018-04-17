@@ -5,7 +5,6 @@ escala = function(checked) {
   if (checked) "logarithmic" else "linear"
 }
 
-# Define a server for the Shiny app
 function(input, output, session) {
 
   react = reactiveValues()
@@ -45,8 +44,7 @@ function(input, output, session) {
       return()
     }
     
-    graphSpec(input$S0, input$N, react$u, react$r, react$payoff, 
-              input$digitos, input$anual) %>%
+    graphSpec(input$S0, input$N, react$u, react$r, react$payoff, input$digitos) %>%
       grViz()
   })
   
@@ -56,7 +54,7 @@ function(input, output, session) {
     }
  
     base = rep(NA, input$N+1)
-    v = computeVs(input$S0, input$N, react$u, react$r, react$payoff, input$anual)
+    v = computeVs(input$S0, input$N, react$u, react$r, react$payoff)
       
     plt = highchart() %>%
       hc_xAxis(categories = (0:(input$T))/input$N, title = list(text = "Tempo (dias)")) %>%
@@ -82,7 +80,7 @@ function(input, output, session) {
     input$novoRandomWalk
     
     if (react$validParameters) {
-      react$S = randomWalk(input$S0, input$N, react$u, react$r, input$anual)
+      react$S = randomWalk(input$S0, input$N, react$u, react$r)
     }
   })
   
@@ -91,25 +89,63 @@ function(input, output, session) {
       return(highchart())
     }
 
-    plt = highchart() %>%
+    highchart() %>%
       hc_xAxis(categories = (0:(input$T))/input$N, title = list(text = "Tempo (dias)"))  %>%
       hc_yAxis(title = list(text = "Preço do ativo"), type = escala(input$escala_log)) %>%
       hc_add_theme(hc_theme_gridlight()) %>%
       hc_add_series(data = react$S, name = "Preço do ativo") %>%
       hc_add_series(data = VAtSequence(react$S, react$u, react$r, react$payoff), name = "Preço da opção")
-    
-    plt
   })
   
-  output$monteCarlo = renderText({
+  output$monteCarlo = renderUI({
     if (!react$validParameters) {
       return(NULL)
     }
     
     input$novoMonteCarlo
     
-    monte = monteCarlo(input$S0, input$N, react$u, react$r, 
-                            react$payoff, input$anual, input$M)
-    glue("Resultado por Monte Carlo: {monte}")
+    bopm = VAt(input$S0, react$u, input$N, react$r, react$payoff)
+    monte = monteCarlo(input$S0, input$N, react$u, react$r, react$payoff, input$M)
+    div(p(sprintf("Valor da opção em t=0 por BOPM: %.2f.", bopm)),
+      p(sprintf("\nValor da opção em t=0 por Monte Carlo: %.2f.", monte)))
+  })
+  
+  output$vn = renderHighchart({
+    if (!react$validParameters) {
+      return(NULL)
+    }
+    
+    N_disc = 30
+    
+    bopm = map_dbl(1:N_disc, function(n) {
+        if (input$anual) {
+          u = input$u^(1/360 * input$T/n)
+          r = (1 + input$r)^(input$T/360 * input$T/n) - 1
+        } else {
+          u = input$u^(input$T/n)
+          r = (1 + input$r)^(input$T/n) - 1
+        }
+        
+        VAt(input$S0, u, n, r, react$payoff)
+      })
+    
+    monte = map_dbl(1:N_disc, function(n) {
+      if (input$anual) {
+        u = input$u^(1/360 * input$T/n)
+        r = (1 + input$r)^(input$T/360 * input$T/n) - 1
+      } else {
+        u = input$u^(input$T/n)
+        r = (1 + input$r)^(input$T/n) - 1
+      }
+      
+      monteCarlo(input$S0, n, u, r, react$payoff, 1000)
+    })
+    
+    highchart() %>%
+      hc_xAxis(categories = 1:N_disc, title = list(text = "N"))  %>%
+      hc_yAxis(title = list(text = "Valor da opção")) %>%
+      hc_add_theme(hc_theme_gridlight()) %>%
+      hc_add_series(data = bopm, name = "BOPM") %>%
+      hc_add_series(data = monte, name = "Monte Carlo") 
   })
 }
