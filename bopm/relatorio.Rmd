@@ -1,7 +1,7 @@
 ---
-title: "Relatório para o Roteiro I de Modelagem Matemática em Finanças I"
-author: "Luiz Rodrigo Silva de Souza"
-date: "16 de abril de 2018"
+title: "Relatório para o Roteiro I"
+author: "Modelagem Matemática em Finanças I"
+date: "Luiz Rodrigo Silva de Souza"
 output: pdf_document
 ---
 
@@ -10,9 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 *Observação:* o aplicativo que desenvolvi para essa atividade pode ser testado
-em
-
-`http://lurodrigo.com/mmfin1/bopm/` 
+em [http://lurodrigo.com/mmfin1/bopm/](http://lurodrigo.com/mmfin1/bopm/)
 
 **Atividade 2:** O valor de $u$ será $u_a^{\frac{T}{360N}}$. Basta ver que 
 $u_d = u_a^{\frac{1}{360}}$. Tendo a taxa diária, o valor de $u$ deve ser tal
@@ -23,11 +21,12 @@ encontramos $r = (1+r_a)^{\frac{T}{360N}} - 1$.
 $r \mapsto (1 + r)^{\frac{1}{360}} - 1$ são crescentes, ou seja, preservam
 as comparações.
 
-Aqui abaixo estão exemplos de random walks com todos os parâmetros iguais, exceto
+As figuras 1 e 2 têm exemplos de random walks com todos os parâmetros iguais, exceto
 pelo $N$, que é 10 ou 100.
 
-![](grafico1.png)
-![](grafico2.png)
+![Random walk com N = 10](figures/grafico1.png)
+
+![Random walk com N = 100](figures/grafico2.png)
 
 Naturalmente, além dos resultados diferentes dos lançamentos de moeda, a diferença
 está na *resolução* do modelo: um modelo com N maior contempla uma quantidade
@@ -35,27 +34,32 @@ maior de valores possíveis para o valor final do ativo.
 
 **Atividade 4:** Fiz esse gráfico para o exemplo 1.2.2 do livro. A diferença
 está somente no payoff, que é de uma call option e não de uma loopback option.
-Segue abaixo o diagrama gerado.
+O diagrama gerado pode ser visto na figura 3.
 
-![](grafico6.png)
+![Diagrama binomial para as condições $S_0 = 4$, $N = 3$, $r = .25$ e $u = 2$](figures/grafico6.png)
 
-O gráfico abaixo mantém os parâmetros fixos, exceto N, que varia. Parece haver
+O gráfico na figura 4 mantém os parâmetros fixos, exceto N, que varia. Parece haver
 convergência para um valor não-nulo à medida que N aumenta.
 
-![](grafico3.png)
+![Gráfico de V em função de N para $S_0 = 4$, $r = .25$ e $u = 2$](figures/grafico3.png)
 
 **Atividade 5:**
 
 Implementei uma função para estimar o valor da opção por Monte Carlo especificando
-o número de tentativas. Os valores costumam estar bem próximos dos
+o número de tentativas (figura 5). Os valores costumam estar bem próximos dos
 estimados pelo modelo binomial.
 
-![](grafico4.png)
+![Exemplo de output](figures/grafico4.png)
 
 Para ver o comportamento em função de N, plotei as séries estimadas pelo modelo
-binomial e por monte carlo lado a lado. De fato o comportamento de ambas é
+binomial e por monte carlo lado a lado (figura 6). De fato o comportamento de ambas é
 bastante parecido. Para fins do gráfico, utilizei M = 1000.
 
-![](grafico5.png)
+![Comparação dos gráficos de V em função de N obtidos pelo modelo e por Monte Carlo](figures/grafico5.png)
 
 **Atividade 6:**
+
+Para $r_a$, basta olhar a taxa básica de juros local, como a SELIC ou a LIBOR.
+Como elas podem variar, pode-se usar uma média ao longo do tempo. Podemos
+estimar $u_d$ como a média aritmética dos retornos diários $\frac{S_{n+1}}{S_n}$ 
+e depois aplicar uma transformação para encontrar $u_a$.

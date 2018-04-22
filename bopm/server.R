@@ -115,6 +115,8 @@ function(input, output, session) {
       return(NULL)
     }
     
+    input$novoVn
+    
     N_disc = 30
     
     bopm = map_dbl(1:N_disc, function(n) {

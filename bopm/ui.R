@@ -41,7 +41,9 @@ fluidPage(theme = shinytheme("cosmo"),
         div(style = "text-align: center;", grVizOutput("diagrama", width = 700, height = 700))
       ),
       tabPanel("Gráfico", highchartOutput("plot")),
-      tabPanel("V em função de N", highchartOutput("vn"))
+      tabPanel("V em função de N", 
+        actionButton("novoVn", "Gerar Novamente", icon = icon("refresh")),
+        highchartOutput("vn"))
     )
   )
 )
