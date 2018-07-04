@@ -1,6 +1,9 @@
 
 library(tidyverse)
 library(Rsolnp)
+library(quantmod)
+
+printf = function(...) cat(sprintf(...))
 
 # número de ativos (manter <= 5)
 n_assets = 5
@@ -9,7 +12,7 @@ n_assets = 5
 n_portfolios = 10000
 
 # taxa de retorno livre de risco
-rf = 6.5 # selic anual
+rf = 0.065 # selic anual
 
 mercado = TRUE
 
@@ -21,16 +24,24 @@ if (mercado) {
     data.frame((returns/lag(returns) - 1)[2:length(returns)])
   })
   
-  r = rowMeans(tb)
+  r = colMeans(tb) * 252
+  Sigma = matrix(rep(0, n_assets * n_assets), nrow = n_assets)
+  
+  for (i in 1:n_assets) {
+    for (j in 1:n_assets) {
+      Sigma[i, j] = cov(tb[, i], tb[, j]) * 252^2
+    }
+  }
   
 } else {
+  stocks = c("AAA", "BBB", "CCC", "DDD", "EEE")[1:n_assets]
   randomCovMatrix = function(n) {
     p = qr.Q(qr(matrix(rnorm(n^2), n)))
-    crossprod(p, p* 3 * runif(n))
+    crossprod(p, p * runif(n))
   }
   
   # retornos aleatórios com distribuição normal
-  r = rnorm(n_assets, 10, 3)
+  r = rf + 0.05*rnorm(n_assets)
   Sigma = randomCovMatrix(n_assets)
 }
 
@@ -47,9 +58,8 @@ tb_portfolios = data.frame(
 
 # limites para o gráfico, só para assegurar que as partes interessantes 
 # serão plotadas
-xlim = c(0, max(tb_portfolios$risk + .1))
-ylim = c(rf - .5, max(tb_portfolios$return + .5))
-
+xlim = c(0, max(tb_portfolios$risk + .001))
+ylim = c(rf - .005, max(tb_portfolios$return + .005))
 
 x0 = rep(1/n_assets, n_assets)
 minRiskForReturn = function(return) {
@@ -57,7 +67,11 @@ minRiskForReturn = function(return) {
   # retorno = um dado retorno
   solnp(x0, function(w) t(w) %*% Sigma %*% w, 
     eqfun = function(w) c(sum(w), r %*% w),
-    eqB = c(1, return))
+    eqB = c(1, return),
+    ineqfun = function(w) w,
+    ineqLB = rep(0, n_assets),
+    ineqUB = rep(1.01, n_assets)
+  )
 }
 
 hyperbola = data.frame(return = seq(ylim[1], ylim[2], length.out = 100)) %>%
@@ -68,14 +82,28 @@ hyperbola = data.frame(return = seq(ylim[1], ylim[2], length.out = 100)) %>%
 
 # gradiente da reta de alocação de capital = maior índice de sharpe
 max_sharpe = max(hyperbola$sharpe)
+imax = which.max(hyperbola$sharpe)
+optimal = minRiskForReturn(hyperbola$return[imax])
+
+# Escreve as informações do problema e da careita tangente:
+rownames(Sigma) <- colnames(Sigma) <- names(r) <- names(optimal$par) <- stocks
+printf("Vetor de retornos: \n")
+print(r)
+printf("Matriz de covariância:\n")
+print(Sigma)
+
+printf("Carteira tangente:\nPesos:\n")
+print(optimal$par)
+
+printf("Risco: %.4f\tRetorno: %.4f\tÍndice de Sharpe: %.4f\n", 
+       hyperbola$risk[imax], hyperbola$return[imax], hyperbola$sharpe[imax])
 
 # plot do gráfico
 ggplot(tb_portfolios, aes(x = risk, y = return, color = sharpe)) + 
   geom_point(size = 1) +
-  scale_color_gradient(low = "red", high = "green") + 
+  scale_color_gradient(low = "red", high = "green", guide = guide_legend(title = "Índice de Sharpe")) + 
   xlab("Risco") + ylab("Retorno esperado") + theme_minimal() +
   geom_abline(slope = max_sharpe, intercept = rf, size = 1) +
   coord_cartesian(xlim = xlim, ylim = ylim) +
   geom_path(data = hyperbola, aes(x = risk, y = return), size = 1) +
-  geom_hline(yintercept = 0) + geom_vline(xintercept = 0) +
-  annotate("text", x = 0, y = 0)
+  geom_hline(yintercept = 0) + geom_vline(xintercept = 0)
