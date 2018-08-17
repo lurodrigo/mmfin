@@ -14,6 +14,8 @@ n_portfolios = 10000
 # taxa de retorno livre de risco
 rf = 0.065 # selic anual
 
+# se mercado == TRUE, trabalha com ativos reais, caso contrário, com ativos
+# fictícios
 mercado = TRUE
 
 if (mercado) {
@@ -56,7 +58,7 @@ tb_portfolios = data.frame(
 ) %>%
   mutate(sharpe = (return - rf)/risk)
 
-# limites para o gráfico, só para assegurar que as partes interessantes 
+# limites para o gráfico, para assegurar que as partes interessantes 
 # serão plotadas
 xlim = c(0, max(tb_portfolios$risk + .001))
 ylim = c(rf - .005, max(tb_portfolios$return + .005))
@@ -64,13 +66,13 @@ ylim = c(rf - .005, max(tb_portfolios$return + .005))
 x0 = rep(1/n_assets, n_assets)
 minRiskForReturn = function(return) {
   # minimiza w^t Sigma w (variância da carteira) sujeito a soma dos pesos = 1,
-  # retorno = um dado retorno
+  # retorno = um dado retorno, pesos entre 0 e 1
   solnp(x0, function(w) t(w) %*% Sigma %*% w, 
     eqfun = function(w) c(sum(w), r %*% w),
     eqB = c(1, return),
     ineqfun = function(w) w,
     ineqLB = rep(0, n_assets),
-    ineqUB = rep(1.01, n_assets)
+    ineqUB = rep(1.01, n_assets) # 1.01 de tolerância a erros numéricos
   )
 }
 
@@ -80,12 +82,12 @@ hyperbola = data.frame(return = seq(ylim[1], ylim[2], length.out = 100)) %>%
     sharpe = (return - rf)/risk
   )
 
-# gradiente da reta de alocação de capital = maior índice de sharpe
+# gradiente da reta de alocação de capital = maior índice de Sharpe
 max_sharpe = max(hyperbola$sharpe)
 imax = which.max(hyperbola$sharpe)
 optimal = minRiskForReturn(hyperbola$return[imax])
 
-# Escreve as informações do problema e da careita tangente:
+# Escreve as informações do problema e da carteira tangente:
 rownames(Sigma) <- colnames(Sigma) <- names(r) <- names(optimal$par) <- stocks
 printf("Vetor de retornos: \n")
 print(r)
@@ -98,7 +100,7 @@ print(optimal$par)
 printf("Risco: %.4f\tRetorno: %.4f\tÍndice de Sharpe: %.4f\n", 
        hyperbola$risk[imax], hyperbola$return[imax], hyperbola$sharpe[imax])
 
-# plot do gráfico
+# plot
 ggplot(tb_portfolios, aes(x = risk, y = return, color = sharpe)) + 
   geom_point(size = 1) +
   scale_color_gradient(low = "red", high = "green", guide = guide_legend(title = "Índice de Sharpe")) + 
