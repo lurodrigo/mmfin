@@ -1,0 +1,155 @@
+---
+title: "1º Trabalho de Modelagem Matemática em Finanças II"
+author: "Luiz R. S. de Souza"
+date: "23 de agosto de 2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setup
+
+Primeiramente, carregamos os pacotes necessários. 
+
+```{r, warning = FALSE, message = FALSE}
+library(purrr)
+library(dplyr)
+library(cubature)
+library(ggplot2)
+```
+
+## Primeira Questão
+
+Precisamos calcular a primeira, segunda e terceira variações de $x \mapsto x^2$ e
+$x \mapsto \sin x$ no intervalo $[0,1]$. Nesse caso, podemos calcular a primeira
+variação diretamente usando a fórmula $var_{1, [a, b]}(f) = \int_a^b \lvert f'(x) \rvert dx$ para
+funções diferenciáveis, obtendo $var_{1, [0, 1]}(x \mapsto x^2) = 1$ e 
+$var_{1, [0, 1]}(x \mapsto sin(x)) = sin(1)$. Podemos testar isso numericamente.
+Para isso, desenvolvi as funções abaixo.
+
+```{r, warning = FALSE}
+# calcula a n_ésima variabilidade de um conjunto de valores
+nth_var = function(fs, order) {
+  sum(abs(diff(fs))^order)
+}
+
+# S = vetor com número de passos
+# N = variação máxima (calcula de 1 até N)
+# no intervalo [a, b]
+var_table = function(f, S = 1000*2^(1:10), N = 3, a = 0, b = 1) {
+  cbind(data.frame(Steps = S), # coluna com o número de passos
+    map_dfr(S, function(s) {
+      map(1:N, nth_var, fs = f(seq(a, b, length.out = s))) %>% 
+        set_names(paste0("Var", 1:N)) %>%
+        as.data.frame 
+    })
+  )
+}
+```
+
+Obtemos:
+
+```{r}
+var_table(sin)
+var_table(function(x) x^2)
+```
+
+Verifica-se que a primeira variação converge rapidamente para o valor exato,
+enquanto as segundas e terceiras variações parecem convergir linearmente/quadraticamente
+para 0.
+
+Para o movimento browniano, o que podemos fazer é estimar a esperança da variabilidade.
+
+```{r}
+# gera um caminho browniano avaliado em uma sequência ts de pontos
+brownian = function(ts) {
+  c(0, cumsum(rnorm(length(ts) - 1, sd = sqrt(diff(ts)))))
+}
+
+nTrials = 100
+(map(1:nTrials, ~ as.matrix(var_table(brownian))) %>% reduce(`+`)) / nTrials
+```
+
+Daí se vê que o valor esperado da primeira variação é infinito, o da segunda
+variação é finito = 1, e a terceira é 0.
+
+## Segunda Questão
+
+Determine a probabilidade de $B(1) \in [1, 2]$ e $B(2) \in [-3, -2]$ por Monte Carlo.
+
+```{r}
+N = 1000000
+
+bAt1 = rnorm(N, sd = 1)
+bAt4 = bAt1 + rnorm(N, sd = sqrt(3))
+sum(as.integer(between(bAt1, 1, 2) & between(bAt4, -3, -2))) / N
+```
+
+## Terceira Questão 
+
+Escreva a integral do Item 2 e a calcule numericamente.
+
+$$\int_1^2 \int_{-3}^{-2} \frac{1}{2\sqrt 3\pi}\exp{\frac{-x_1^2}{2}} \exp{\frac{-(x_2-x_1)^2}{6}}dx_2dx_1$$
+
+```{r}
+# usando a dnorm() densidade da normal já built-in na linguagem
+density = function(x) {
+  dnorm(x[1], sd = 1) * dnorm(x[2] - x[1], sd = sqrt(3))
+}
+
+adaptIntegrate(density, lowerLimit = c(1, -3), upperLimit = c(2, -2))
+```
+
+## Quarta Questão
+
+Determine por Monte Carlo a probabilidade de $B(t) < \sqrt t + 0.5$ para todo $t$.
+
+Primeiro faço uma simulação menor, guardando toda a trajetória dos movimentos
+brownianos, para analisar o comportamento dessa probabilidade
+à medida que T cresce. O gráfico sugere um decaimento convergente, mas não fica claro
+se é para 0 ou para alguma constante positiva.
+
+```{r}
+ts = seq(0, 1000, by = 0.01)
+
+probUpperBound = function(ts, nTrials) {
+  # gera n_trial vetores de 0 ou 1, cada um deles do tamanho de um run browniano,
+  # indicando se o upper bound é valido até aquele instante
+  nSuccesses = map(1:nTrials, function(...) {
+    as.integer(brownian(ts) <= sqrt(ts) + .5) %>% cumprod
+  }) %>% c(recursive = TRUE) %>%
+    matrix(nrow = nTrials, byrow = TRUE) %>% # transforma numa matriz e soma as colunas
+    colSums() 
+  nSuccesses / nTrials
+}
+
+p = probUpperBound(ts, 100)
+
+ggplot(data.frame(t = ts, p = p), aes(x = t, y = p)) + geom_path() + ylim(0, 1)
+```
+
+Para conseguir simular para T indo a infinito, faço uma pequena modificação na função
+de modo a não computar as probabilidades para todos os valores de T, mas
+apenas para o T final. Também aumento os incrementos do movimento browniano.
+
+```{r}
+probUpperBound2 = function(ts, nTrials) {
+  # gera n_trial vetores de 0 ou 1, cada um deles do tamanho de um run browniano,
+  # indicando se o upper bound é valido até aquele instante
+  nSuccesses = map_int(1:nTrials, function(...) {
+    as.integer(all(brownian(ts) <= sqrt(ts) + .5))
+  }) %>% sum
+  nSuccesses / nTrials
+}
+
+10^(3:7) %>% 
+  set_names(.) %>%
+  map_dbl(~ probUpperBound2(seq(0, ., by = 1), nTrials = 100))
+```
+
+Os resultados sugerem que a probabilidade de um run nunca ultrapassar a barreira
+de $\sqrt t + .5$ vai para 0 à medida que t vai a infinito.

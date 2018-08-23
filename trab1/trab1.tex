@@ -1,0 +1,368 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={1º Trabalho de Modelagem Matemática em Finanças II},
+            pdfauthor={Luiz R. S. de Souza},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{1º Trabalho de Modelagem Matemática em Finanças II}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Luiz R. S. de Souza}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{23 de agosto de 2018}
+
+
+\begin{document}
+\maketitle
+
+\subsection{Setup}\label{setup}
+
+Primeiramente, carregamos os pacotes necessários.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(purrr)}
+\KeywordTok{library}\NormalTok{(dplyr)}
+\KeywordTok{library}\NormalTok{(cubature)}
+\KeywordTok{library}\NormalTok{(ggplot2)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Primeira Questão}\label{primeira-questao}
+
+Precisamos calcular a primeira, segunda e terceira variações de
+\(x \mapsto x^2\) e \(x \mapsto \sin x\) no intervalo \([0,1]\). Nesse
+caso, podemos calcular a primeira variação diretamente usando a fórmula
+\(var_{1, [a, b]}(f) = \int_a^b \lvert f'(x) \rvert dx\) para funções
+diferenciáveis, obtendo \(var_{1, [0, 1]}(x \mapsto x^2) = 1\) e
+\(var_{1, [0, 1]}(x \mapsto sin(x)) = sin(1)\). Podemos testar isso
+numericamente. Para isso, desenvolvi as funções abaixo.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# calcula a n_ésima variabilidade de um conjunto de valores}
+\NormalTok{nth_var =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(fs, order) \{}
+  \KeywordTok{sum}\NormalTok{(}\KeywordTok{abs}\NormalTok{(}\KeywordTok{diff}\NormalTok{(fs))}\OperatorTok{^}\NormalTok{order)}
+\NormalTok{\}}
+
+\CommentTok{# S = vetor com número de passos}
+\CommentTok{# N = variação máxima (calcula de 1 até N)}
+\CommentTok{# no intervalo [a, b]}
+\NormalTok{var_table =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(f, }\DataTypeTok{S =} \DecValTok{1000}\OperatorTok{*}\DecValTok{2}\OperatorTok{^}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{10}\NormalTok{), }\DataTypeTok{N =} \DecValTok{3}\NormalTok{, }\DataTypeTok{a =} \DecValTok{0}\NormalTok{, }\DataTypeTok{b =} \DecValTok{1}\NormalTok{) \{}
+  \KeywordTok{cbind}\NormalTok{(}\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{Steps =}\NormalTok{ S), }\CommentTok{# coluna com o número de passos}
+    \KeywordTok{map_dfr}\NormalTok{(S, }\ControlFlowTok{function}\NormalTok{(s) \{}
+      \KeywordTok{map}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\NormalTok{N, nth_var, }\DataTypeTok{fs =} \KeywordTok{f}\NormalTok{(}\KeywordTok{seq}\NormalTok{(a, b, }\DataTypeTok{length.out =}\NormalTok{ s))) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{        }\KeywordTok{set_names}\NormalTok{(}\KeywordTok{paste0}\NormalTok{(}\StringTok{"Var"}\NormalTok{, }\DecValTok{1}\OperatorTok{:}\NormalTok{N)) }\OperatorTok{%>%}
+\StringTok{        }\NormalTok{as.data.frame }
+\NormalTok{    \})}
+\NormalTok{  )}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Obtemos:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{var_table}\NormalTok{(sin)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      Steps     Var1         Var2         Var3
+## 1     2000 0.841471 3.638441e-04 1.608766e-07
+## 2     4000 0.841471 1.818766e-04 4.019905e-08
+## 3     8000 0.841471 9.092691e-05 1.004725e-08
+## 4    16000 0.841471 4.546061e-05 2.511498e-09
+## 5    32000 0.841471 2.272960e-05 6.278354e-10
+## 6    64000 0.841471 1.136462e-05 1.569539e-10
+## 7   128000 0.841471 5.682266e-06 3.923787e-11
+## 8   256000 0.841471 2.841122e-06 9.809391e-12
+## 9   512000 0.841471 1.420558e-06 2.452338e-12
+## 10 1024000 0.841471 7.102784e-07 6.130834e-13
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{var_table}\NormalTok{(}\ControlFlowTok{function}\NormalTok{(x) x}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      Steps Var1         Var2         Var3
+## 1     2000    1 6.670001e-04 5.005003e-07
+## 2     4000    1 3.334167e-04 1.250625e-07
+## 3     8000    1 1.666875e-04 3.125781e-08
+## 4    16000    1 8.333854e-05 7.813477e-09
+## 5    32000    1 4.166797e-05 1.953247e-09
+## 6    64000    1 2.083366e-05 4.882965e-10
+## 7   128000    1 1.041675e-05 1.220722e-10
+## 8   256000    1 5.208354e-06 3.051782e-11
+## 9   512000    1 2.604172e-06 7.629424e-12
+## 10 1024000    1 1.302085e-06 1.907352e-12
+\end{verbatim}
+
+Verifica-se que a primeira variação converge rapidamente para o valor
+exato, enquanto as segundas e terceiras variações parecem convergir
+linearmente/quadraticamente para 0.
+
+Para o movimento browniano, o que podemos fazer é estimar a esperança da
+variabilidade.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# gera um caminho browniano avaliado em uma sequência ts de pontos}
+\NormalTok{brownian =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(ts) \{}
+  \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\KeywordTok{cumsum}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\KeywordTok{length}\NormalTok{(ts) }\OperatorTok{-}\StringTok{ }\DecValTok{1}\NormalTok{, }\DataTypeTok{sd =} \KeywordTok{sqrt}\NormalTok{(}\KeywordTok{diff}\NormalTok{(ts)))))}
+\NormalTok{\}}
+
+\NormalTok{nTrials =}\StringTok{ }\DecValTok{100}
+\NormalTok{(}\KeywordTok{map}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\NormalTok{nTrials, }\OperatorTok{~}\StringTok{ }\KeywordTok{as.matrix}\NormalTok{(}\KeywordTok{var_table}\NormalTok{(brownian))) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{reduce}\NormalTok{(}\StringTok{`}\DataTypeTok{+}\StringTok{`}\NormalTok{)) }\OperatorTok{/}\StringTok{ }\NormalTok{nTrials}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         Steps      Var1      Var2        Var3
+##  [1,]    2000  35.73575 1.0026715 0.035811766
+##  [2,]    4000  50.49795 1.0006660 0.025245535
+##  [3,]    8000  71.30989 0.9989026 0.017812959
+##  [4,]   16000 100.81202 0.9980664 0.012580397
+##  [5,]   32000 142.62662 0.9991415 0.008913208
+##  [6,]   64000 201.86365 1.0001652 0.006311208
+##  [7,]  128000 285.33360 0.9992133 0.004455472
+##  [8,]  256000 403.74658 1.0001947 0.003154520
+##  [9,]  512000 570.96401 1.0002078 0.002230892
+## [10,] 1024000 807.45010 1.0001114 0.001577241
+\end{verbatim}
+
+Daí se vê que o valor esperado da primeira variação é infinito, o da
+segunda variação é finito = 1, e a terceira é 0.
+
+\subsection{Segunda Questão}\label{segunda-questao}
+
+Determine a probabilidade de \(B(1) \in [1, 2]\) e \(B(2) \in [-3, -2]\)
+por Monte Carlo.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{N =}\StringTok{ }\DecValTok{1000000}
+
+\NormalTok{bAt1 =}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(N, }\DataTypeTok{sd =} \DecValTok{1}\NormalTok{)}
+\NormalTok{bAt4 =}\StringTok{ }\NormalTok{bAt1 }\OperatorTok{+}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(N, }\DataTypeTok{sd =} \KeywordTok{sqrt}\NormalTok{(}\DecValTok{3}\NormalTok{))}
+\KeywordTok{sum}\NormalTok{(}\KeywordTok{as.integer}\NormalTok{(}\KeywordTok{between}\NormalTok{(bAt1, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{) }\OperatorTok{&}\StringTok{ }\KeywordTok{between}\NormalTok{(bAt4, }\OperatorTok{-}\DecValTok{3}\NormalTok{, }\OperatorTok{-}\DecValTok{2}\NormalTok{))) }\OperatorTok{/}\StringTok{ }\NormalTok{N}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.002835
+\end{verbatim}
+
+\subsection{Terceira Questão}\label{terceira-questao}
+
+Escreva a integral do Item 2 e a calcule numericamente.
+
+\[\int_1^2 \int_{-3}^{-2} \frac{1}{2\sqrt 3\pi}\exp{\frac{-x_1^2}{2}} \exp{\frac{-(x_2-x_1)^2}{6}}dx_2dx_1\]
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# usando a dnorm() densidade da normal já built-in na linguagem}
+\NormalTok{density =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(x) \{}
+  \KeywordTok{dnorm}\NormalTok{(x[}\DecValTok{1}\NormalTok{], }\DataTypeTok{sd =} \DecValTok{1}\NormalTok{) }\OperatorTok{*}\StringTok{ }\KeywordTok{dnorm}\NormalTok{(x[}\DecValTok{2}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{x[}\DecValTok{1}\NormalTok{], }\DataTypeTok{sd =} \KeywordTok{sqrt}\NormalTok{(}\DecValTok{3}\NormalTok{))}
+\NormalTok{\}}
+
+\KeywordTok{adaptIntegrate}\NormalTok{(density, }\DataTypeTok{lowerLimit =} \KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\OperatorTok{-}\DecValTok{3}\NormalTok{), }\DataTypeTok{upperLimit =} \KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\OperatorTok{-}\DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## $integral
+## [1] 0.002796764
+## 
+## $error
+## [1] 2.586796e-08
+## 
+## $functionEvaluations
+## [1] 85
+## 
+## $returnCode
+## [1] 0
+\end{verbatim}
+
+\subsection{Quarta Questão}\label{quarta-questao}
+
+Determine por Monte Carlo a probabilidade de \(B(t) < \sqrt t + 0.5\)
+para todo \(t\).
+
+Primeiro faço uma simulação menor, guardando toda a trajetória dos
+movimentos brownianos, para analisar o comportamento dessa probabilidade
+à medida que T cresce. O gráfico sugere um decaimento convergente, mas
+não fica claro se é para 0 ou para alguma constante positiva.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ts =}\StringTok{ }\KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1000}\NormalTok{, }\DataTypeTok{by =} \FloatTok{0.01}\NormalTok{)}
+
+\NormalTok{probUpperBound =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(ts, nTrials) \{}
+  \CommentTok{# gera n_trial vetores de 0 ou 1, cada um deles do tamanho de um run browniano,}
+  \CommentTok{# indicando se o upper bound é valido até aquele instante}
+\NormalTok{  nSuccesses =}\StringTok{ }\KeywordTok{map}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\NormalTok{nTrials, }\ControlFlowTok{function}\NormalTok{(...) \{}
+    \KeywordTok{as.integer}\NormalTok{(}\KeywordTok{brownian}\NormalTok{(ts) }\OperatorTok{<=}\StringTok{ }\KeywordTok{sqrt}\NormalTok{(ts) }\OperatorTok{+}\StringTok{ }\NormalTok{.}\DecValTok{5}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }\NormalTok{cumprod}
+\NormalTok{  \}) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DataTypeTok{recursive =} \OtherTok{TRUE}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{matrix}\NormalTok{(}\DataTypeTok{nrow =}\NormalTok{ nTrials, }\DataTypeTok{byrow =} \OtherTok{TRUE}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }\CommentTok{# transforma numa matriz e soma as colunas}
+\StringTok{    }\KeywordTok{colSums}\NormalTok{() }
+\NormalTok{  nSuccesses }\OperatorTok{/}\StringTok{ }\NormalTok{nTrials}
+\NormalTok{\}}
+
+\NormalTok{p =}\StringTok{ }\KeywordTok{probUpperBound}\NormalTok{(ts, }\DecValTok{100}\NormalTok{)}
+
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{t =}\NormalTok{ ts, }\DataTypeTok{p =}\NormalTok{ p), }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ t, }\DataTypeTok{y =}\NormalTok{ p)) }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_path}\NormalTok{() }\OperatorTok{+}\StringTok{ }\KeywordTok{ylim}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{trab1_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+Para conseguir simular para T indo a infinito, faço uma pequena
+modificação na função de modo a não computar as probabilidades para
+todos os valores de T, mas apenas para o T final. Também aumento os
+incrementos do movimento browniano.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{probUpperBound2 =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(ts, nTrials) \{}
+  \CommentTok{# gera n_trial vetores de 0 ou 1, cada um deles do tamanho de um run browniano,}
+  \CommentTok{# indicando se o upper bound é valido até aquele instante}
+\NormalTok{  nSuccesses =}\StringTok{ }\KeywordTok{map_int}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\NormalTok{nTrials, }\ControlFlowTok{function}\NormalTok{(...) \{}
+    \KeywordTok{as.integer}\NormalTok{(}\KeywordTok{all}\NormalTok{(}\KeywordTok{brownian}\NormalTok{(ts) }\OperatorTok{<=}\StringTok{ }\KeywordTok{sqrt}\NormalTok{(ts) }\OperatorTok{+}\StringTok{ }\NormalTok{.}\DecValTok{5}\NormalTok{))}
+\NormalTok{  \}) }\OperatorTok{%>%}\StringTok{ }\NormalTok{sum}
+\NormalTok{  nSuccesses }\OperatorTok{/}\StringTok{ }\NormalTok{nTrials}
+\NormalTok{\}}
+
+\DecValTok{10}\OperatorTok{^}\NormalTok{(}\DecValTok{3}\OperatorTok{:}\DecValTok{7}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{set_names}\NormalTok{(.) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{map_dbl}\NormalTok{(}\OperatorTok{~}\StringTok{ }\KeywordTok{probUpperBound2}\NormalTok{(}\KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, ., }\DataTypeTok{by =} \DecValTok{1}\NormalTok{), }\DataTypeTok{nTrials =} \DecValTok{100}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  1000 10000 1e+05 1e+06 1e+07 
+##  0.31  0.19  0.10  0.06  0.04
+\end{verbatim}
+
+Os resultados sugerem que a probabilidade de um run nunca ultrapassar a
+barreira de \(\sqrt t + .5\) vai para 0 à medida que t vai a infinito.
+
+
+\end{document}
