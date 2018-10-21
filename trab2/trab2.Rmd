@@ -13,9 +13,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Carregando as libs...
 
-```{r, message = FALSE}
+```{r, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(magrittr)
+library(rlang)
 ```
 
 ## Seção 2: Movimento Browniano
@@ -38,7 +39,7 @@ brownian = function(t, m, d = FALSE) {
 
 ### Figura 1: Caminho browniano discretizado
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 t = seq(0, 1, by = 1/500)
 W = brownian(t, 1)
 data.frame(t = t, W = W) %>%
@@ -50,11 +51,11 @@ Agora vamos simular o comportamento de $u(t) = exp(t + \frac{W(t)}{2})$.
 
 ### Figura 2: U(t) na média de 1000 runs e alguns runs específicos
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 t = seq(0, 1, by = 1/500)
 m = 1000
 W = brownian(t, m)
-W2 = cbind(W[, 1:5], rowSums(W)/m)
+W2 = cbind(W[, 1:5], rowMeans(W))
 colnames(W2) = c(paste0("samplepath", 1:5), "mean")
 
 df = apply(W2, 2, function(W) exp(t + W^2/2)) %>% as.data.frame
@@ -65,7 +66,7 @@ df %>% gather(path, y, -t) %>%
   ylab("U(t)") + theme_minimal()
 ```
 
-## Seção 4-6: O método Euler-Maruyama/Milstein/Runge-Kutta
+## Seções 4 e 6: Os métodos Euler-Maruyama, Milstein e Runge-Kutta
 
 ```{r}
 # generates m integral paths of dX = fdt + gdW along t
@@ -147,7 +148,7 @@ stochasticRK = function(f, g, t, x0, m = NULL, dB = NULL) {
 
 Usando $dt = 2^{-8}$ para a solução real e $dt = 2^{-6}$ para EM/Milstein. 
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 lambda = 2
 mu = 1
 X0 = 1
@@ -181,7 +182,7 @@ left_join(data.frame(t, Xtrue), data.frame(t = t2, Xem, Xmil, Xrk)) %>%
 
 Primeiro, gero 5000 caminhos brownianos em várias resoluções diferentes
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 t = seq(0, 1, by = 2^(-9))
 m = 50000
 dW = brownian(t, m, d = TRUE)
@@ -195,17 +196,19 @@ dWs = map(1:5, function(i) {
 })
 ```
 
+### Figura 4: Testes de convergência fraca e forte para os métodos de SDEs
+
 Pontilhado: slope encontrado por mínimos quadrados. Pontilhado vermelho:
 slope ideal (.5 strong, 1 weak)
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 map_dfr(1:5, function(i) {
   dt = 2^(i-10)
-  
-  Xem = eulerMaruyama(f, g, seq(0, 1, by = dt), X0, dB = dWs[[i]])
-  Xwem = weakEM(f, g, seq(0, 1, by = dt), X0, dB = dWs[[i]])
-  Xmil = milstein(f, g, gx, seq(0, 1, by = dt), X0, dB = dWs[[i]])
-  Xrk = stochasticRK(f, g, seq(0, 1, by = dt), X0, dB = dWs[[i]])
+  t = seq(0, 1, by = dt)
+  Xem = eulerMaruyama(f, g, t, X0, dB = dWs[[i]])
+  Xwem = weakEM(f, g, t, X0, dB = dWs[[i]])
+  Xmil = milstein(f, g, gx, t, X0, dB = dWs[[i]])
+  Xrk = stochasticRK(f, g, t, X0, dB = dWs[[i]])
   
   data.frame(
     dt = dt,
@@ -226,7 +229,8 @@ map_dfr(1:5, function(i) {
     a = coef(lm(log(err) ~ log(dt)))[2],
     err_hat = exp(b)*dt^a
   ) %>%
-  ggplot() + theme_minimal() + coord_trans(x = "log", y = "log") + 
+  ggplot() + theme_minimal() + scale_x_continuous(trans = "log10") + 
+  scale_y_continuous(trans = "log10") + 
   geom_point(aes(x = dt, y = err)) + 
   geom_path(aes(x = dt, y = err_hat), linetype = "dashed") +
   geom_path(aes(x = dt, 
@@ -237,5 +241,89 @@ map_dfr(1:5, function(i) {
                 )), 
             color = "red", linetype = "dashed") +
   facet_wrap(~ type)
+```
+
+## Seção 7: Estabilidade linear
+
+### Figura 5.a: Teste mean squares
+
+```{r, message = FALSE, warning = FALSE}
+T = 20
+dts = c(.25, .5, 1)
+m = 50000
+
+lambda = -3
+mu = sqrt(3)
+X0 = 1
+f = function(t, X) lambda*X
+g = function(t, X) mu*X
+
+map(dts, function(dt) {
+  t = seq(0, T, dt)
+  data.frame(t = t) %>%
+    mutate(!!sym(paste0("dt = ", dt)) := rowMeans(eulerMaruyama(f, g, t, X0, m)^2))
+}) %>% 
+  reduce(left_join) %>%
+  gather(run, y, -t) %>%
+  filter(!is.na(y)) %>%
+  ggplot(aes(x = t, y = y, color = run)) + geom_path() +
+  ylab("E[X²]") + theme_minimal() + scale_y_continuous(trans = "log10") +
+  ggtitle("Mean square: lambda = -3, mu = sqrt(3)")
+  
+```
+
+### Figura 5.b: Teste de estabilidade assintótica
+
+```{r, message = FALSE, warning = FALSE}
+T = 500
+dts = c(.25, .5, 1)
+m = 1
+
+lambda = .5
+mu = sqrt(6)
+X0 = 1
+f = function(t, X) lambda*X
+g = function(t, X) mu*X
+
+map(dts, function(dt) {
+  t = seq(0, T, dt)
+  data.frame(t = t) %>%
+    mutate(!!sym(paste0("dt = ", dt)) := as.vector(abs(eulerMaruyama(f, g, t, X0, m))))
+}) %>% 
+  reduce(left_join) %>%
+  gather(run, y, -t) %>%
+  filter(!is.na(y)) %>%
+  ggplot(aes(x = t, y = y, color = run)) + geom_path() +
+  ylab("|X|") + theme_minimal() + scale_y_continuous(trans = "log10") +
+  ggtitle("Single Path: lambda = .5, mu = sqrt(6)")
+  
+``` 
+
+## Seção 8: Regra da cadeia estocástica
+
+```{r, message = FALSE, warning = FALSE}
+alpha = 2
+beta = 1
+t = seq(0, 1, by = 1/200)
+dW = brownian(t, 1, d = TRUE)
+X0 = 1
+
+f1 = function(t, X) alpha - X
+g1 = function(t, X) beta * sqrt(X)
+
+f2 = function(t, V) (4*alpha - beta^2)/(8*V) - .5*V
+g2 = function(t, V) .5*beta
+
+direct = sqrt(eulerMaruyama(f1, g1, t, X0, dB = dW))
+chainrule = eulerMaruyama(f2, g2, t, X0, dB = dW)
+
+bind_rows(
+  data.frame(t = t, method = "Direct Solution", y = direct),
+  data.frame(t = t, method = "Chain Rule SDE", y = chainrule)
+) %>%
+  ggplot(aes(x = t, y = y, color = method)) + geom_path() +
+  ylab("V(X)") + theme_minimal()
+
+print(paste0("Diferença máxima: ", max(abs(direct - chainrule))))
 ```
 
