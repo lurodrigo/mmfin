@@ -3,8 +3,8 @@ title: "2º Trabalho de Modelagem Matemática em Finanças II"
 author: "Luiz Rodrigo S. de Souza"
 date: "20 de outubro de 2018"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -55,15 +55,16 @@ Agora vamos simular o comportamento de $u(t) = exp(t + \frac{W(t)}{2})$.
 t = seq(0, 1, by = 1/500)
 m = 1000
 W = brownian(t, m)
-W2 = cbind(W[, 1:5], rowMeans(W))
-colnames(W2) = c(paste0("samplepath", 1:5), "mean")
 
-df = apply(W2, 2, function(W) exp(t + W^2/2)) %>% as.data.frame
+df = apply(W[, 1:5], 2, function(W) exp(t + W^2/2)) %>% as.data.frame
+names(df) = paste0("Sample Path ", 1:5)
+df$`Mean of 1000 paths` = apply(W, 2, function(W) exp(t + W^2/2)) %>% rowMeans
 df$t = t
 
-df %>% gather(path, y, -t) %>%
-  ggplot(aes(x = t, y = y, color = path)) + geom_path() +
-  ylab("U(t)") + theme_minimal()
+df %>% gather(Path, y, -t) %>%
+  mutate(style = if_else(startsWith(Path, "Mean"), "mean", "sample")) %>%
+  ggplot(aes(x = t, y = y, color = Path, linetype = style)) + geom_path() +
+  ylab("U(W(t))") + theme_minimal()
 ```
 
 ## Seções 4 e 6: Os métodos Euler-Maruyama, Milstein e Runge-Kutta
@@ -87,6 +88,7 @@ eulerMaruyama = function(f, g, t, x0, m = NULL, dB = NULL) {
   X
 }
 
+# weak euler-maruyama: uses dX
 weakEM = function(f, g, t, x0, m = NULL, dB = NULL) {
   dt = diff(t)
   
@@ -175,12 +177,21 @@ left_join(data.frame(t, Xtrue), data.frame(t = t2, Xem, Xmil, Xrk)) %>%
   gather(Method, y, -t) %>%
   filter(!is.na(y)) %>%
   ggplot(aes(x = t, y = y, color = Method)) + geom_path() +
-  ylab("X") + theme_minimal()
+  ylab("X") + theme_minimal() +
+  ggtitle("escala comum")
+
+left_join(data.frame(t, Xtrue), data.frame(t = t2, Xem, Xmil, Xrk)) %>%
+  gather(Method, y, -t) %>%
+  filter(!is.na(y)) %>%
+  ggplot(aes(x = t, y = y, color = Method)) + geom_path() +
+  scale_y_continuous(trans = "log10") +
+  ylab("X") + theme_minimal() +
+  ggtitle("escala logarítmica")
 ```
 
 ## Seção 5: Convergência forte e fraca 
 
-Primeiro, gero 5000 caminhos brownianos em várias resoluções diferentes
+Primeiro, gero 50000 caminhos brownianos em várias resoluções diferentes
 
 ```{r, message = FALSE, warning = FALSE}
 t = seq(0, 1, by = 2^(-9))
@@ -199,10 +210,10 @@ dWs = map(1:5, function(i) {
 ### Figura 4: Testes de convergência fraca e forte para os métodos de SDEs
 
 Pontilhado: slope encontrado por mínimos quadrados. Pontilhado vermelho:
-slope ideal (.5 strong, 1 weak)
+slope teórico
 
 ```{r, message = FALSE, warning = FALSE}
-map_dfr(1:5, function(i) {
+tb = map_dfr(1:5, function(i) {
   dt = 2^(i-10)
   t = seq(0, 1, by = dt)
   Xem = eulerMaruyama(f, g, t, X0, dB = dWs[[i]])
@@ -228,8 +239,9 @@ map_dfr(1:5, function(i) {
     b = coef(lm(log(err) ~ log(dt)))[1], 
     a = coef(lm(log(err) ~ log(dt)))[2],
     err_hat = exp(b)*dt^a
-  ) %>%
-  ggplot() + theme_minimal() + scale_x_continuous(trans = "log10") + 
+  )
+
+  ggplot(tb) + theme_minimal() + scale_x_continuous(trans = "log10") + 
   scale_y_continuous(trans = "log10") + 
   geom_point(aes(x = dt, y = err)) + 
   geom_path(aes(x = dt, y = err_hat), linetype = "dashed") +
